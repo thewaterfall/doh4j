@@ -1,0 +1,63 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+group 'org.waterfallio.doh4j'
+version "${version}"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType(JavaCompile) {
+    options.release = 11
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            groupId = 'org.waterfallio'
+            artifactId = 'doh4j'
+            version = "${version}"
+
+            pom {
+                url = "https://github.com/thewaterfall/doh4j"
+                name = 'Doh4j'
+                description = 'The Doh4j library is a powerful yet simple DNS Over HTTPS (DoH) client implementation ' +
+                        'for Java 11+, packaged neatly into a streamlined and powerful API. The Doh4j client uses ' +
+                        'Google, Cloudflare, and Quad9 DoH resolvers by default, but it also supports custom ' +
+                        'RFC 8484-compliant resolvers.'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'http://www.opensource.org/licenses/mit-license.php'
+                    }
+                }
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.slf4j:slf4j-api:${slf4jApiVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${jupiterEngineVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${jupiterApiVersion}"
+    testImplementation "org.mockito:mockito-core:${mockitoVersion}"
+}
+
+test {
+    useJUnitPlatform()
+}
