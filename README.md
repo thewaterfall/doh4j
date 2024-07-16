@@ -49,14 +49,14 @@ Add the following to your pom.xml file:
 
 The Doh4j client provides a simple and straightforward interface, making the process of DNS lookups easy. Below are examples of how you can carry out DNS lookups using predefined and custom resolvers.
 
-### Lookup with predefined resolvers
+### Synchronous lookup with predefined resolvers
 
 ```
 Doh4j.newClient()
     .lookup("example.com", Type.A);
 ```
 
-### Lookup with custom resolvers
+### Synchronous lookup with custom resolvers
 
 ```
 Doh4j.build()
@@ -66,7 +66,7 @@ Doh4j.build()
 ```
 
 
-### Lookup with custom HTTP client
+### Synchronous lookup with custom HTTP client
 
 You can also use a custom java.net HTTP client while performing DNS lookups. This feature can be useful in situations where there is a need for custom configuration for HTTP requests like timeouts, handlers, proxies, and more. Here's how you can perform a DNS lookup with a custom resolver and a custom HTTP client:
 
@@ -78,4 +78,28 @@ Doh4j.build()
     .resolver("https://resolve.com/resolve")
     .build()
     .lookup("example.com", Type.A);
+```
+
+### Asynchronous lookup
+
+```
+Do4J.newClient()
+    .lookupAsync("example.com", Type.A)
+    .thenAccept(result -> System.out.println(result.getStatus())); // Callback, called if no exception is thrown
+    
+Do4J.builder()
+    .resolver("https://resolver1.com/resolve")
+    .resolver("https://resolver2.com/resolve")
+    .build()
+    .lookupAsync("example.com", Type.A)
+    .thenAccept(result -> System.out.println(result.getStatus())); // Callback, called if no exception is thrown
+    
+// Exception handling    
+Do4J.newClient()
+    .lookupAsync("example.com", Type.A)
+    .whenComplete((result, e) -> {
+        if (e != null) {
+         // Handle exception
+        }
+    });
 ```
