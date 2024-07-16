@@ -16,6 +16,9 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.*;
 import java.util.stream.Stream;
 
 import static org.waterfallio.doh4j.Resolver.*;
@@ -117,8 +120,8 @@ public class Doh4j {
     }
 
     /**
-     * <p>Performs a DNS lookup using a list of resolvers (by default Google, Cloudflare, Quad9). If the first resolver
-     * fails to respond, i.e. unreachable, continues with the next resolver, until a resolver responds
+     * <p>Performs a synchronous DNS lookup using a list of resolvers (by default Google, Cloudflare, Quad9). If the
+     * first resolver fails to respond, i.e. unreachable, continues with the next resolver, until a resolver responds
      * or no resolvers are left.</p>
      *
      * <p>Example of lookup with default resolvers (Google, Cloudflare, Quad9):</p>
@@ -146,6 +149,81 @@ public class Doh4j {
           .flatMap(resolver -> doLookup(resolver, name, type))
           .findFirst()
           .orElseThrow(() -> new Do4jLookupException("Failed to lookup with provided resolvers"));
+    }
+
+    /**
+     * <p>Performs an asynchronous DNS lookup using a list of resolvers (by default Google, Cloudflare, Quad9). If the
+     * first resolver fails to respond, i.e. unreachable, continues with the next resolver, until a resolver responds
+     * or no resolvers are left.</p>
+     *
+     * <p>Example of lookup with default resolvers (Google, Cloudflare, Quad9):</p>
+     * <pre>{@code
+     * Do4J.newClient()
+     *  .lookupAsync("example.com", Type.A)
+     *  .thenAccept(result -> System.out.println(result.getStatus())); // Callback, called if no exception is thrown
+     *
+     * }</pre>
+     *
+     * <p>Example of lookup with custom resolvers:</p>
+     * <pre>{@code
+     * Do4J.builder()
+     *  .resolver("https://resolver1.com/resolve")
+     *  .resolver("https://resolver2.com/resolve")
+     *  .build()
+     *  .lookupAsync("example.com", Type.A)
+     *  .thenAccept(result -> System.out.println(result.getStatus())); // Callback, called if no exception is thrown
+     * }</pre>
+     *
+     * <p>Example of exception handling (use {@link CompletableFuture#handle},
+     * {@link CompletableFuture#whenComplete(BiConsumer)} or {@link CompletableFuture#exceptionally(Function)}:</p>
+     * <pre>{@code
+     * Do4J.newClient()
+     *  .lookupAsync("example.com", Type.A)
+     *  .whenComplete((result, e) -> {
+     *    if (e != null) {
+     *      // Handle exception
+     *    }
+     *  });
+     * }</pre>
+     *
+     * @param name the domain name to lookup
+     * @param type the type of DNS record to retrieve, see {@link org.waterfallio.doh4j.specification.Type}
+     * @return {@link CompletableFuture<Result>} the asynchronous result of the lookup
+     * @throws Do4jLookupException if unable to connect to any of the resolvers
+     * @see CompletableFuture#thenAccept(Consumer)
+     * @see CompletableFuture#thenApply(Function)
+     * @see CompletableFuture#handle(BiFunction)
+     * @see CompletableFuture#whenComplete(BiConsumer)
+     * @see CompletableFuture#exceptionally(Function)
+     */
+    public CompletableFuture<Result> lookupAsync(String name, int type) {
+      return doLookupAsync(name, type, 0);
+    }
+
+    private CompletableFuture<Result> doLookupAsync(String name, int type, int resolverIndex) {
+      if (resolverIndex >= resolvers.size()) {
+        return CompletableFuture.failedFuture(new Do4jLookupException("Failed to lookup with all provided resolvers"));
+      }
+
+      Resolver resolver = resolvers.get(resolverIndex);
+
+      if (log.isDebugEnabled()) {
+        log.debug("Perform async lookup with {} resolver for {} and {} type", resolver.getUrl(), name, type);
+      }
+
+      return client.sendAsync(getRequest(resolver, name, type), BodyHandlers.ofByteArray())
+          .thenApply(response -> Optional.ofNullable(deserialize(response)))
+          .exceptionally(e -> {
+            if (log.isDebugEnabled()) {
+              log.debug("Failed to lookup with {} resolver for {} and {} type", resolver.getUrl(), name, type, e);
+            }
+
+            return Optional.empty();
+          })
+          .thenCompose(result ->
+              result.map(CompletableFuture::completedFuture)
+                  .orElseGet(() -> doLookupAsync(name, type, resolverIndex + 1))
+          );
     }
 
     private Stream<Result> doLookup(Resolver resolver, String name, int type) throws Do4jLookupException {
