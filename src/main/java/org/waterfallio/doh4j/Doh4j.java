@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -142,30 +143,24 @@ public class Doh4j {
      */
     public Result lookup(String name, int type) throws Do4jLookupException {
       return resolvers.stream()
-          .flatMap(resolver -> {
-            try {
-              if (log.isDebugEnabled()) {
-                log.debug("Perform look up with {} resolver for {} and {} type", resolver.getUrl(), name, type);
-              }
-
-              return Stream.of(doLookup(resolver, name, type));
-            } catch (Do4jLookupException e) {
-              if (log.isDebugEnabled()) {
-                log.debug("Failed to lookup", e);
-              }
-
-              return Stream.empty();
-            }
-          })
+          .flatMap(resolver -> doLookup(resolver, name, type))
           .findFirst()
           .orElseThrow(() -> new Do4jLookupException("Failed to lookup with provided resolvers"));
     }
 
-    private Result doLookup(Resolver resolver, String name, int type) throws Do4jLookupException {
+    private Stream<Result> doLookup(Resolver resolver, String name, int type) throws Do4jLookupException {
       try {
-        return deserialize(client.send(getRequest(resolver, name, type), HttpResponse.BodyHandlers.ofByteArray()));
+        if (log.isDebugEnabled()) {
+          log.debug("Perform lookup with {} resolver for {} and {} type", resolver.getUrl(), name, type);
+        }
+
+        return Stream.of(deserialize(client.send(getRequest(resolver, name, type), BodyHandlers.ofByteArray())));
       } catch (IOException | InterruptedException | Do4jSerializeException e) {
-        throw new Do4jLookupException(e);
+        if (log.isDebugEnabled()) {
+          log.debug("Failed to lookup with {} resolver for {} and {} type", resolver.getUrl(), name, type, e);
+        }
+
+        return Stream.empty();
       }
     }
 
