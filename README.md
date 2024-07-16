@@ -63,7 +63,7 @@ Doh4j.newClient()
 ### Synchronous lookup with custom resolvers
 
 ```
-Doh4j.build()
+Doh4j.builder()
     .resolver("https://resolve.com/resolve")
     .build()
     .lookup("example.com", Type.A);
@@ -77,7 +77,7 @@ You can also use a custom java.net HTTP client while performing DNS lookups. Thi
 ```
 HttpClient client = HttpClient.newHttpClient();
 
-Doh4j.build()
+Doh4j.builder()
     .client(client)
     .resolver("https://resolve.com/resolve")
     .build()
