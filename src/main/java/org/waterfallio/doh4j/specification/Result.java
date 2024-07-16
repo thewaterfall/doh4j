@@ -6,6 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * <a href="https://developers.google.com/speed/public-dns/docs/doh">DNS-over-HTTPS (DoH)</a>
+ * <a href="https://developers.google.com/speed/public-dns/docs/doh/json">JSON API for DNS over HTTPS (DoH)</a>
+ */
 public class Result {
   @JsonProperty("Status")
   private int status;

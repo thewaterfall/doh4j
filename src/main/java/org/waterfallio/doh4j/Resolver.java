@@ -2,6 +2,10 @@ package org.waterfallio.doh4j;
 
 import java.util.Objects;
 
+/**
+ * The Resolver class represents a DNS resolver for performing DNS over HTTPS (DoH) lookups. Includes URL of the
+ * resolvers and the HTTP method to use in a request.
+ */
 public class Resolver {
   public enum Method {
     GET, POST, PUT

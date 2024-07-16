@@ -2,6 +2,10 @@ package org.waterfallio.doh4j.specification;
 
 import java.util.Objects;
 
+/**
+ * <a href="https://developers.google.com/speed/public-dns/docs/doh">DNS-over-HTTPS (DoH)</a>
+ * <a href="https://developers.google.com/speed/public-dns/docs/doh/json">JSON API for DNS over HTTPS (DoH)</a>
+ */
 public class Answer {
   private String name;
   private int type;
