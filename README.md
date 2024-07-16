@@ -1,12 +1,14 @@
 # Doh4j: DNS over HTTPS (DoH) for Java
 
-The Doh4j library is a powerful yet simple DNS Over HTTPS (DoH) client implementation for Java 11+, packaged neatly into a streamlined and powerful API. The Doh4j client uses Google, Cloudflare, and Quad9 DoH resolvers by default, but it also supports custom RFC 8484-compliant resolvers.  
+The Doh4j library is a powerful yet simple DNS Over HTTPS (DoH) client implementation for **Java 11+**, packaged neatly into a streamlined and powerful API. The Doh4j client uses Google, Cloudflare, and Quad9 DoH resolvers by default, but it also supports custom RFC 8484-compliant resolvers.  
 
 ## Features
 
-- Perform DNS lookup over HTTP: The Doh4jClient class provides a client for performing DNS over HTTPS (DoH) lookups using a list of resolvers.
+- Perform DNS lookup over HTTPS: The Doh4jClient class provides a client for performing DNS over HTTPS (DoH) lookups using a list of resolvers.
 - Configurable Resolvers: By default, Google, Cloudflare, and Quad9 are used as resolvers. However, custom resolvers can be supplied.
 - Fallback Mechanism: If a DNS lookup fails with the first resolver, the client tries the next one until a resolver responds or no resolvers are left.
+- Synchronous and Asynchronous Operations: Supports both blocking synchronous and non-blocking asynchronous operations.
+- Utilizes Native Java HttpClient: Leverages the native HttpClient available from **Java 11** and onwards. This makes the library efficient and reliable, as it uses the well-maintained and high-performing HTTP API provided by Java itself
 
 ## Installation
 The Doh4j library can be easily installed using JitPack, see Gradle and Maven examples below.
